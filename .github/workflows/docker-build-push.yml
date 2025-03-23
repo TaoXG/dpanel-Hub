@@ -23,4 +23,4 @@ jobs:
         with:
           context: .
           push: true
-          tags: your-dockerhub-username/your-repo-name:latest
+          tags: taoxg/dpanel:latest
