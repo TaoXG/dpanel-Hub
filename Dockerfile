@@ -18,9 +18,6 @@ RUN python3 -m venv /app/myenv && \
     pip install --no-cache-dir pypinyin tqdm requests pysocks telethon pyyaml pytz httpx bs4 && \
     deactivate
 
-# 复制文件（如果需要）
-# COPY source target
-
 # 列出目录内容（调试用）
 RUN ls -al
 
