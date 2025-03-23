@@ -23,4 +23,4 @@ jobs:
         with:
           context: .
           push: true
-          tags: taoxg/dpanel:latest
+          tags: taoxg/dpanel:1.6.2
