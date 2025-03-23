@@ -5,9 +5,6 @@ RUN apk add --no-cache tzdata && \
     cp /usr/share/zoneinfo/Asia/Shanghai /etc/localtime && \
     echo "Asia/Shanghai" > /etc/timezone
 
-# 设置工作目录
-# WORKDIR /app
-
 # 使用 apk 安装依赖
 RUN apk add --no-cache \
     python3 \
