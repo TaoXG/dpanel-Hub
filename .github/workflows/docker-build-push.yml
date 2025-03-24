@@ -1,7 +1,24 @@
 name: Docker Multi-Arch Build and Push
 
-on:
-  workflow_dispatch:
+   on:
+     schedule:
+       - cron: "0 0 * * *" # 每天 UTC 时间 00:00 运行
+     workflow_dispatch:
+
+   jobs:
+     check-upstream:
+       runs-on: ubuntu-latest
+       steps:
+         - name: Checkout code
+           uses: actions/checkout@v2
+
+         - name: Set up Docker
+           uses: docker/setup-buildx-action@v2
+
+         - name: Check upstream image
+           run: |
+             docker pull dpanel/dpanel:lite --quiet
+             ./check-upstream.sh
 #  push:
 #    branches:
 #      - main
