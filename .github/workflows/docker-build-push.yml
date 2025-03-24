@@ -43,5 +43,5 @@ jobs:
         with:
           context: .
           push: true
-          标签: taoxg/dpanel:lite
+          tags: taoxg/dpanel:lite
           platforms: linux/amd64,linux/arm64
