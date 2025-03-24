@@ -1,8 +1,6 @@
 name: Check Upstream Image and Build
 
 on:
-  schedule:
-    - cron: "0 0 * * *" # 每天 UTC 时间 00:00 运行
   workflow_dispatch:
 
 jobs:
