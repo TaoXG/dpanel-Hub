@@ -1,4 +1,4 @@
-FROM dpanel/dpanel:lite
+FROM haoxuan8855/dpanel:lite
 
 # 设置时区
 RUN apk add --no-cache tzdata && \
