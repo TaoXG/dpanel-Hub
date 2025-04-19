@@ -27,5 +27,5 @@ jobs:
         with:
           context: .
           push: true
-          tags: taoxg/dpanel:lite
+          tags: taoxg/dpanel:1.6.3.2
           platforms: linux/amd64,linux/arm64
