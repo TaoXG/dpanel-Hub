@@ -1,4 +1,4 @@
-name: Check Upstream Image and Build
+name: beta-lite
 
 on:
   workflow_dispatch:
