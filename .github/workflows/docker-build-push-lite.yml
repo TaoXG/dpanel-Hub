@@ -1,6 +1,4 @@
-
-name: Check Upstream Image and Build
-
+name: lite
 on:
   workflow_dispatch:
 #  push:
