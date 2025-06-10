@@ -26,6 +26,7 @@ jobs:
         uses: docker/build-push-action@v3
         with:
           context: .
+          file: ./Docker-beta
           push: true
           #tags: taoxg/dpanel:lite
           tags: taoxg/dpanel:beta-lite
