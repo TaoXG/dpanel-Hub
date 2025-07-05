@@ -18,10 +18,9 @@ RUN apk add --no-cache \
 #    pip install --no-cache-dir pypinyin tqdm requests pysocks telethon pyyaml pytz httpx bs4 aiohttp && \
 #    deactivate
 RUN python3 -m venv /app/myenv && \
-    . /app/myenv/bin/activate && \
-    pip install --upgrade pip && \
-    pip install --no-cache-dir pypinyin tqdm requests pysocks pyyaml pytz httpx bs4 aiohttp && \
-    pip install --no-cache-dir --upgrade telethon && \
+    /app/myenv/bin/pip install --upgrade pip && \
+    /app/myenv/bin/pip install --no-cache-dir pypinyin tqdm requests pysocks pyyaml pytz httpx bs4 aiohttp && \
+    /app/myenv/bin/pip install --no-cache-dir --upgrade telethon
     
 # 列出目录内容（调试用）
 RUN ls -al
