@@ -13,9 +13,15 @@ RUN apk add --no-cache \
     bash
 
 # 创建虚拟环境并安装 Python 依赖
+#RUN python3 -m venv /app/myenv && \
+#    . /app/myenv/bin/activate && \
+#    pip install --no-cache-dir pypinyin tqdm requests pysocks telethon pyyaml pytz httpx bs4 aiohttp && \
+#    deactivate
 RUN python3 -m venv /app/myenv && \
     . /app/myenv/bin/activate && \
-    pip install --no-cache-dir pypinyin tqdm requests pysocks telethon pyyaml pytz httpx bs4 && \
+    pip install --upgrade pip && \
+    pip install --no-cache-dir pypinyin tqdm requests pysocks pyyaml pytz httpx bs4 aiohttp && \
+    pip install --no-cache-dir --upgrade telethon && \  # 单独更新telethon
     deactivate
 
 # 列出目录内容（调试用）
