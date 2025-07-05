@@ -22,7 +22,6 @@ RUN python3 -m venv /app/myenv && \
     pip install --upgrade pip && \
     pip install --no-cache-dir pypinyin tqdm requests pysocks pyyaml pytz httpx bs4 aiohttp && \
     pip install --no-cache-dir --upgrade telethon && \  # 单独更新telethon
-    deactivate
 
 # 列出目录内容（调试用）
 RUN ls -al
