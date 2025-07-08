@@ -1,4 +1,4 @@
-name: lite
+name: DPanel-lite
 on:
   workflow_dispatch:
 #  push:
