@@ -1,0 +1,8 @@
+FROM alpine
+
+WORKDIR /app/
+#VOLUME [ "/dpanel" ]
+
+EXPOSE 7856
+
+ENTRYPOINT /app/tgs
