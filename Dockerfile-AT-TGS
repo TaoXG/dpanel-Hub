@@ -5,4 +5,4 @@ WORKDIR /app/
 
 EXPOSE 7856
 
-ENTRYPOINT /app/tgs
+ENTRYPOINT ["/app/tgs"]
