@@ -1,4 +1,4 @@
-name: beta-lite
+name: DPanel-beta-lite
 
 on:
   workflow_dispatch:
