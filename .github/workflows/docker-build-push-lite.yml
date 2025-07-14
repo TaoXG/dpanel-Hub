@@ -27,5 +27,4 @@ jobs:
           context: .
           push: true
           tags: taoxg/dpanel:lite
-          #tags: taoxg/dpanel:beta-lite
-          platforms: linux/amd64,linux/arm64
+          platforms: linux/amd64,linux/arm64,linux/arm/v7
