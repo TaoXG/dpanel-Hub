@@ -27,6 +27,5 @@ jobs:
           context: .
           file: ./Dockerfile-beta
           push: true
-          #tags: taoxg/dpanel:lite
           tags: taoxg/dpanel:beta-lite
           platforms: linux/amd64
