@@ -77,7 +77,7 @@ def scrape_channel():
         current_date = read_current_date(file_type)
         if current_date != data['date_str']:
             print(f"发现新{file_type}文件，日期: {data['date_str']}")
-            download_file(data['url']， f'真心{file_type}.zip')
+            download_file(data['url'], f'真心{file_type}.zip')
             
             with open(f'{file_type}.txt', 'w') as f:
                 f.write(data['date_str'])
