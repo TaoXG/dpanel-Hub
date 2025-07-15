@@ -1,0 +1,31 @@
+name: Telegram Web Monitor
+
+on:
+  schedule:
+    - cron: '*/30 * * * *'
+  workflow_dispatch:
+
+jobs:
+  monitor:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+    - uses: actions/setup-python@v4
+      with:
+        python-version: '3.10'
+    
+    - name: Install dependencies
+      run: pip install requests beautifulsoup4 python-dateutil
+    
+    - name: Run Web monitor
+      env:
+        CHANNEL_NAME: "juejijianghu"
+      run: python web_monitor.py
+    
+    - name: 提交更改
+      run: |
+        git config --global user.name "GitHub Actions"
+        git config --global user.email "actions@github.com"
+        git add .
+        git diff --quiet && git diff --staged --quiet || git commit -m "Update files from Telegram Web"
+        git push
