@@ -36,7 +36,7 @@ def parse_message(message_div):
     if not document_div:
         return None
     
-    file_name = document_div.find('div', class_='tgme_widget_message_document_name')。text
+    file_name = document_div.find('div', class_='tgme_widget_message_document_name').text
     file_url = document_div.find('a', class_='tgme_widget_message_document_link')['href']
     
     return {
