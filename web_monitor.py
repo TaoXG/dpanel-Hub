@@ -16,7 +16,7 @@ FILE_PATTERNS = {
 def read_current_date(file_type):
     try:
         with open(f'{file_type}.txt', 'r') as f:
-            return f.read()。strip()
+            return f.read().strip()
     except FileNotFoundError:
         return ""
 
