@@ -2,11 +2,11 @@ name: DPanel-lite
  
 on:
   workflow_dispatch:
-  push:
-    branches:
-      - main 
-    tags:
-      - 'v*'  # 添加标签触发支持 
+#  push:
+#    branches:
+#      - main 
+#    tags:
+#      - 'v*'  # 添加标签触发支持 
  
 jobs:
   build:
