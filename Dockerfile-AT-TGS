@@ -1,8 +1,16 @@
-FROM alpine
-
+# 基础镜像
+FROM alpine 
+ 
+# 设置工作目录
 WORKDIR /app/
-#VOLUME [ "/dpanel" ]
-
+ 
+# 声明代理环境变量（默认值为空）
+ENV HTTP_PROXY=""
+ENV HTTPS_PROXY=""
+ENV NO_PROXY=""
+ 
+# 暴露应用端口
 EXPOSE 7856
-
+ 
+# 容器启动命令 
 ENTRYPOINT ["/app/tgs"]
