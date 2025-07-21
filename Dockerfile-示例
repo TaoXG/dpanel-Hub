@@ -1,0 +1,20 @@
+FROM alpine
+
+# 设置环境变量，默认值为空
+ENV SOCKS5_PROXY=""
+ENV HTTP_PROXY=""
+ENV HTTPS_PROXY=""
+
+WORKDIR /app/
+EXPOSE 7856
+
+# 使用脚本作为入口点，处理代理配置
+COPY entrypoint.sh /app/
+RUN chmod +x /app/entrypoint.sh
+
+# 复制应用程序
+COPY tgs /app/
+
+# 使用脚本作为入口点
+ENTRYPOINT ["/app/entrypoint.sh"]
+    
