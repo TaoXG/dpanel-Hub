@@ -1,4 +1,4 @@
-# 基础镜像
+# 基础镜像 
 FROM alpine 
  
 # 设置工作目录
@@ -8,6 +8,8 @@ WORKDIR /app/
 ENV HTTP_PROXY=""
 ENV HTTPS_PROXY=""
 ENV NO_PROXY=""
+# 新增SOCKS5代理支持 
+ENV SOCKS5_PROXY=""
  
 # 暴露应用端口
 EXPOSE 7856
