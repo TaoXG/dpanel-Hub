@@ -13,15 +13,6 @@ RUN apk add --no-cache \
     bash \
     curl
 
-# 创建虚拟环境并安装 Python 依赖
-#RUN python3 -m venv /app/myenv && \
-#    . /app/myenv/bin/activate && \
-#    pip install --no-cache-dir pypinyin tqdm requests pysocks telethon pyyaml pytz httpx bs4 aiohttp && \
-#    deactivate
-#RUN python3 -m venv /app/myenv && \
-#    /app/myenv/bin/pip install --upgrade pip && \
-#    /app/myenv/bin/pip install --no-cache-dir pypinyin tqdm requests pysocks pyyaml pytz httpx bs4 aiohttp && \
-#    /app/myenv/bin/pip install --no-cache-dir --upgrade telethon
 RUN python3 -m venv /app/myenv && \
     /app/myenv/bin/pip install --upgrade pip && \
     /app/myenv/bin/pip install --no-cache-dir --upgrade pypinyin tqdm requests pysocks pyyaml pytz httpx bs4 aiohttp telethon docker
@@ -29,5 +20,16 @@ RUN python3 -m venv /app/myenv && \
 # 列出目录内容（调试用）
 RUN ls -al
 
-# 设置入口点
-ENTRYPOINT [ "sh", "-c", "/app/server/dpanel server:start -f /app/server/config.yaml" ]
+# 创建启动脚本 - 先执行原命令，再执行自定义命令
+RUN echo '#!/bin/sh' > /entrypoint.sh && \
+    echo '# 先执行原来的启动命令' >> /entrypoint.sh && \
+    echo '/app/server/dpanel server:start -f /app/server/config.yaml' >> /entrypoint.sh && \
+    echo '# 检查是否有自定义命令需要执行' >> /entrypoint.sh && \
+    echo 'if [ -n "$STARTUP_COMMAND" ]; then' >> /entrypoint.sh && \
+    echo '  echo "执行后置自定义命令: $STARTUP_COMMAND"' >> /entrypoint.sh && \
+    echo '  eval "$STARTUP_COMMAND"' >> /entrypoint.sh && \
+    echo 'fi' >> /entrypoint.sh && \
+    chmod +x /entrypoint.sh
+
+# 设置入口点为自定义脚本
+ENTRYPOINT ["/entrypoint.sh"]
