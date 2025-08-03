@@ -22,14 +22,13 @@ RUN python3 -m venv /app/myenv && \
 RUN ls -al
 
 # 创建启动脚本：先执行自定义命令，再执行原命令（原命令作为主进程）
+# 移除了命令中的注释，避免构建错误
 RUN echo '#!/bin/sh' > /entrypoint.sh && \
-    echo 'set -x' >> /entrypoint.sh &&  # 开启调试模式 && \
-    # 1. 先执行自定义命令（如果设置）
+    echo 'set -x' >> /entrypoint.sh && \
     echo 'if [ -n "$STARTUP_COMMAND" ]; then' >> /entrypoint.sh && \
     echo '  echo "执行前置自定义命令: $STARTUP_COMMAND"' >> /entrypoint.sh && \
     echo '  eval "$STARTUP_COMMAND"' >> /entrypoint.sh && \
     echo 'fi' >> /entrypoint.sh && \
-    # 2. 执行原命令（作为主进程，前台运行）
     echo '/app/server/dpanel server:start -f /app/server/config.yaml' >> /entrypoint.sh && \
     chmod +x /entrypoint.sh
 
