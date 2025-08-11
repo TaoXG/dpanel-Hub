@@ -16,7 +16,7 @@ RUN apk add --no-cache \
 
 RUN python3 -m venv /app/myenv && \
     /app/myenv/bin/pip install --upgrade pip && \
-    /app/myenv/bin/pip install --no-cache-dir --upgrade pypinyin tqdm requests pysocks pyyaml pytz httpx bs4 aiohttp telethon docker
+    /app/myenv/bin/pip install --no-cache-dir --upgrade pypinyin tqdm requests pysocks pyyaml pytz httpx bs4 aiohttp telethon docker qrcode
     
 # 列出目录内容（调试用）
 RUN ls -al
