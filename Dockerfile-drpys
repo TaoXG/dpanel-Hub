@@ -1,52 +1,40 @@
-# 修复：使用存在的 Node 22.x + Alpine 3.20 组合（Node 22 官方推荐的 Alpine 版本）
 FROM node:22.16.0-alpine3.20
 
-# 1. 彻底清理残留缓存，避免旧文件干扰
+# 1. 清理缓存 + 设置国内PyPI源（解决网络问题）
 RUN rm -rf /var/cache/apk/* && \
-    rm -rf /usr/lib/python3*/*-packages && \
-    rm -rf /root/.cache/pip
+    # 配置阿里云PyPI源，加速安装并避免国外源连接问题
+    mkdir -p /root/.pip && \
+    echo "[global]" > /root/.pip/pip.conf && \
+    echo "index-url = https://mirrors.aliyun.com/pypi/simple/" >> /root/.pip/pip.conf && \
+    echo "trusted-host = mirrors.aliyun.com" >> /root/.pip/pip.conf
 
-# 2. 先安装基础工具，再单独安装Python（拆分步骤减少冲突）
-RUN apk add --no-cache bash coreutils curl
-
-# 3. 安装Python3及pip（Alpine 3.20 中 Python 3.11 的默认版本）
-# 注：Alpine 3.20 中 py3-pip 版本已更新，无需强行指定旧版本（避免版本不匹配）
+# 2. 安装基础工具 + Python环境（一次性安装，避免分步冲突）
 RUN apk add --no-cache \
+    bash \
+    coreutils \
+    curl \
     python3 \
     py3-pip \
-    py3-setuptools
-
-# 4. 验证Python和pip的可执行路径（关键：确保命令能被正确找到）
-RUN echo "Python路径: $(which python3)" && \
-    echo "pip路径: $(which pip3)" && \
-    python3 --version && \
-    pip3 --version
-
-# 5. 解决Alpine中pip可能的SSL问题（添加证书）
-RUN apk add --no-cache ca-certificates && \
-    update-ca-certificates
-
-# 6. 升级pip（使用python3 -m pip的方式，比直接用pip3更可靠）
-RUN echo "升级pip" && \
-    python3 -m pip install --no-cache-dir --upgrade pip
-
-# 7. 安装编译依赖（为后续lxml等包做准备）
-RUN apk add --no-cache \
-    gcc \
+    py3-setuptools \
+    ca-certificates \  # 解决SSL证书问题
+    gcc \              # 编译依赖
     musl-dev \
     python3-dev \
     libxml2-dev \
     libxslt-dev \
-    # 注：基础镜像已包含nodejs和npm，无需重复安装
-    coreutils
+    tzdata
 
-# 8. 设置时区
-RUN apk add --no-cache tzdata && \
-    cp /usr/share/zoneinfo/Asia/Shanghai /etc/localtime && \
+# 3. 验证Python环境（确认基础功能正常）
+RUN echo "Python版本: $(python3 --version)" && \
+    echo "pip版本: $(python3 -m pip --version)"
+
+# 4. 设置时区
+RUN cp /usr/share/zoneinfo/Asia/Shanghai /etc/localtime && \
     echo "Asia/Shanghai" > /etc/timezone && \
     rm -rf /var/cache/apk/*
 
-# 9. 安装Python依赖包
+# 5. 关键修复：不升级pip，直接用系统预装pip安装依赖
+# （Alpine预装的pip已足够用，升级反而可能引发路径冲突）
 RUN python3 -m pip install --no-cache-dir requests
 RUN python3 -m pip install --no-cache-dir lxml
 RUN python3 -m pip install --no-cache-dir pycryptodome
