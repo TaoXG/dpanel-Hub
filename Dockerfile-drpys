@@ -1,21 +1,47 @@
-# 用Python官方Alpine镜像（pip环境天然正确，无路径问题）
+# 基础镜像：Python官方Alpine镜像
 FROM python:3.11-alpine3.20
 
-# 1. 安装Node环境（满足你的Node需求）
-RUN apk add --no-cache nodejs npm bash tzdata coreutils
+# 1. 安装必要的系统工具和编译依赖
+# 特别是lxml等包需要编译工具
+RUN apk add --no-cache \
+    nodejs \
+    npm \
+    bash \
+    tzdata \
+    coreutils \
+    gcc \
+    musl-dev \
+    python3-dev \
+    libxml2-dev \
+    libxslt-dev
 
-# 2. 复制本地下载的依赖包和requirements.txt到容器
+# 2. 复制依赖包和requirements文件
 COPY packages /app/packages
 COPY requirements.txt /app/requirements.txt
 
-# 3. 离线安装Python依赖（完全不依赖外部网络）
-RUN python -m pip install --no-cache-dir --no-index --find-links=/app/packages -r /app/requirements.txt
+# 3. 验证复制的文件是否正确
+RUN echo "=== 验证依赖包 ===" && \
+    ls -la /app/packages && \
+    echo "=== 验证requirements.txt ===" && \
+    cat /app/requirements.txt
 
-# 4. 设置时区
+# 4. 优化离线安装命令
+RUN python -m pip install --no-cache-dir --upgrade pip && \
+    python -m pip install --no-cache-dir \
+    --no-index \
+    --find-links=/app/packages \
+    -r /app/requirements.txt \
+    --verbose
+
+# 5. 设置时区
 RUN cp /usr/share/zoneinfo/Asia/Shanghai /etc/localtime && \
     echo "Asia/Shanghai" > /etc/timezone
 
-# 5. 工作目录和端口
+# 6. 清理临时文件减小镜像体积
+RUN rm -rf /app/packages && \
+    rm -rf /root/.cache/pip
+
 WORKDIR /drpy-node
 EXPOSE 5757
 CMD ["node", "index.js"]
+    
