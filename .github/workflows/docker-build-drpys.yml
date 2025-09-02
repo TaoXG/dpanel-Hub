@@ -1,9 +1,8 @@
 name: drpys
 on:
   workflow_dispatch:
-#  push:
-#    branches:
-#      - main
+  # push:
+  #   branches: [main]
 
 jobs:
   build:
@@ -12,26 +11,49 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
+      # 步骤1：在CI环境中安装Python和pip
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"  # 与Dockerfile中的Python版本一致
+
+      # 步骤2：下载Python依赖包到本地（packages目录）
+      - name: Download Python dependencies
+        run: |
+          # 创建packages目录
+          mkdir -p packages
+          # 安装pip（确保是最新版）
+          python -m pip install --upgrade pip
+          # 用阿里云源下载依赖到packages目录
+          pip download -d packages -r requirements.txt -i https://mirrors.aliyun.com/pypi/simple/
+          # 查看下载结果（用于调试）
+          ls -l packages/
+
+      # 步骤3：清理Docker缓存（避免旧缓存干扰）
       - name: Clean Docker cache
         run: |
           docker system prune -af
           docker builder prune -af
 
+      # 步骤4：设置Docker Buildx
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
+      # 步骤5：登录Docker Hub
       - name: Log in to Docker Hub
         uses: docker/login-action@v3
         with:
           username: ${{ secrets.DOCKER_HUB_USERNAME }}
           password: ${{ secrets.DOCKER_HUB_TOKEN }}
 
+      # 步骤6：构建并推送Docker镜像（使用离线依赖）
       - name: Build and push Docker image
         uses: docker/build-push-action@v5
         with:
-          context: .
+          context: .  # 工作目录包含packages和requirements.txt
           file: ./Dockerfile-drpys
           push: true
           tags: taoxg/drpys:latest
           platforms: linux/amd64,linux/arm64,linux/arm/v7
-          no-cache: true  # 禁用缓存，确保全新构建
+          no-cache: true  # 禁用缓存，确保每次都是全新构建
+          progress: plain  # 输出详细日志，便于调试
