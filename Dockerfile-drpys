@@ -1,11 +1,15 @@
 FROM node:22.16.0-alpine
 
+# 清除缓存并更新系统
+RUN apk update && apk upgrade && rm -rf /var/cache/apk/*
+
 # 设置时区
 RUN apk add --no-cache tzdata && \
     cp /usr/share/zoneinfo/Asia/Shanghai /etc/localtime && \
-    echo "Asia/Shanghai" > /etc/timezone
+    echo "Asia/Shanghai" > /etc/timezone && \
+    rm -rf /var/cache/apk/*
 
-# 使用 apk 安装依赖（包含 coreutils 解决 nohup 问题）
+# 使用 apk 安装依赖
 RUN apk add --no-cache \
     python3 \
     py3-pip \
@@ -14,12 +18,16 @@ RUN apk add --no-cache \
     gcc \
     musl-dev \
     python3-dev \
-    nodejs npm \
+    libxml2-dev \
+    libxslt-dev \
+    nodejs \
+    npm \
     bash \
     curl \
-    coreutils  # 确保 nohup 可用
+    coreutils && \
+    rm -rf /var/cache/apk/*
 
-# 安装必要的Python包，注意命令中不要有中文字符
+# 安装必要的Python包
 RUN python3 -m ensurepip --upgrade && \
     pip3 install --no-cache-dir --upgrade pip && \
     pip3 install --no-cache-dir \
@@ -33,7 +41,7 @@ RUN python3 -m ensurepip --upgrade && \
     jinja2 \
     cachetools \
     pympler
-    
+
 WORKDIR /drpy-node
 
 EXPOSE 5757
