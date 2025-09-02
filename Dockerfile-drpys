@@ -12,12 +12,14 @@ RUN apk add --no-cache \
     py3-setuptools \
     py3-wheel \
     nodejs npm \
-    nodejs \
     bash \
     curl \
     coreutils  # 确保 nohup 可用
 
-RUN RUN pip3 install --no-cache-dir --upgrade requests lxml pycryptodome ujson pyquery jsonpath json5 jinja2 cachetools pympler
+# 先确认pip3是否存在并更新pip本身
+RUN python3 -m ensurepip --upgrade && \
+    pip3 install --no-cache-dir --upgrade pip && \
+    pip3 install --no-cache-dir requests lxml pycryptodome ujson pyquery jsonpath json5 jinja2 cachetools pympler
     
 WORKDIR /drpy-node
 
