@@ -10,22 +10,28 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
+
+      - name: Clean Docker cache
+        run: |
+          docker system prune -af
+          docker builder prune -af
 
       - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v2
+        uses: docker/setup-buildx-action@v3
 
       - name: Log in to Docker Hub
-        uses: docker/login-action@v2
+        uses: docker/login-action@v3
         with:
           username: ${{ secrets.DOCKER_HUB_USERNAME }}
           password: ${{ secrets.DOCKER_HUB_TOKEN }}
 
       - name: Build and push Docker image
-        uses: docker/build-push-action@v3
+        uses: docker/build-push-action@v5
         with:
           context: .
           file: ./Dockerfile-drpys
           push: true
-          tags: taoxg/drpys
+          tags: taoxg/drpys:latest
           platforms: linux/amd64,linux/arm64,linux/arm/v7
+          no-cache: true  # 禁用缓存，确保全新构建
