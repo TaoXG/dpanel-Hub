@@ -1,7 +1,7 @@
-# 使用更稳定的基础镜像版本
+# 使用稳定的基础镜像
 FROM node:22.16.0-alpine3.20
 
-# 完全重新初始化包管理，确保没有缓存干扰
+# 初始化包管理
 RUN rm -rf /var/cache/apk/* && \
     apk update --no-cache && \
     apk upgrade --no-cache
@@ -12,47 +12,28 @@ RUN apk add --no-cache tzdata && \
     echo "Asia/Shanghai" > /etc/timezone && \
     rm -rf /var/cache/apk/*
 
-# 使用 apk 安装依赖
-RUN apk add --no-cache \
-    python3 \
-    py3-pip \
-    py3-setuptools \
-    py3-wheel \
-    gcc \
-    musl-dev \
-    python3-dev \
-    libxml2-dev \
-    libxslt-dev \
-    nodejs \
-    npm \
-    bash \
-    curl \
-    coreutils && \
-    rm -rf /var/cache/apk/*
+# 安装系统依赖 - 分开安装以减少缓存问题
+RUN apk add --no-cache python3 py3-pip
+RUN apk add --no-cache gcc musl-dev python3-dev libxml2-dev libxslt-dev
+RUN apk add --no-cache nodejs npm bash curl coreutils
 
-# 单独创建一个安装脚本，避免命令行缓存问题
-RUN echo '#!/bin/sh\n\
-python3 -m ensurepip --upgrade\n\
-pip3 install --no-cache-dir --upgrade pip\n\
-pip3 install --no-cache-dir \\\n\
-requests \\\n\
-lxml \\\n\
-pycryptodome \\\n\
-ujson \\\n\
-pyquery \\\n\
-jsonpath \\\n\
-json5 \\\n\
-jinja2 \\\n\
-cachetools \\\n\
-pympler' > /install_python_packages.sh && \
-    chmod +x /install_python_packages.sh && \
-    /install_python_packages.sh && \
-    rm /install_python_packages.sh
+# 简化Python包安装过程，避免复杂的脚本转义
+RUN pip3 install --no-cache-dir --upgrade pip && \
+    pip3 install --no-cache-dir requests && \
+    pip3 install --no-cache-dir lxml && \
+    pip3 install --no-cache-dir pycryptodome && \
+    pip3 install --no-cache-dir ujson && \
+    pip3 install --no-cache-dir pyquery && \
+    pip3 install --no-cache-dir jsonpath && \
+    pip3 install --no-cache-dir json5 && \
+    pip3 install --no-cache-dir jinja2 && \
+    pip3 install --no-cache-dir cachetools && \
+    pip3 install --no-cache-dir pympler
 
 WORKDIR /drpy-node
 
 EXPOSE 5757
 
-# 使用JSON格式的CMD以解决警告
+# JSON格式CMD
 CMD ["node", "index.js"]
     
