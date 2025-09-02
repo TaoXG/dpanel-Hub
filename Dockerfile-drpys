@@ -1,10 +1,11 @@
 # 使用稳定的基础镜像
 FROM node:22.16.0-alpine3.20
 
-# 初始化包管理
+# 初始化包管理并安装必要工具
 RUN rm -rf /var/cache/apk/* && \
     apk update --no-cache && \
-    apk upgrade --no-cache
+    apk upgrade --no-cache && \
+    apk add --no-cache bash coreutils
 
 # 设置时区
 RUN apk add --no-cache tzdata && \
@@ -12,28 +13,52 @@ RUN apk add --no-cache tzdata && \
     echo "Asia/Shanghai" > /etc/timezone && \
     rm -rf /var/cache/apk/*
 
-# 安装系统依赖 - 分开安装以减少缓存问题
-RUN apk add --no-cache python3 py3-pip
-RUN apk add --no-cache gcc musl-dev python3-dev libxml2-dev libxslt-dev
-RUN apk add --no-cache nodejs npm bash curl coreutils
+# 安装Python及编译依赖
+RUN apk add --no-cache python3 py3-pip && \
+    apk add --no-cache gcc musl-dev python3-dev libxml2-dev libxslt-dev && \
+    apk add --no-cache nodejs npm curl
 
-# 简化Python包安装过程，避免复杂的脚本转义
-RUN pip3 install --no-cache-dir --upgrade pip && \
-    pip3 install --no-cache-dir requests && \
-    pip3 install --no-cache-dir lxml && \
-    pip3 install --no-cache-dir pycryptodome && \
-    pip3 install --no-cache-dir ujson && \
-    pip3 install --no-cache-dir pyquery && \
-    pip3 install --no-cache-dir jsonpath && \
-    pip3 install --no-cache-dir json5 && \
-    pip3 install --no-cache-dir jinja2 && \
-    pip3 install --no-cache-dir cachetools && \
+# 验证Python和pip版本
+RUN echo "Python版本: $(python3 --version)" && \
+    echo "pip版本: $(pip3 --version)"
+
+# 分步安装Python包，每步都添加日志
+RUN echo "升级pip" && \
+    pip3 install --no-cache-dir --upgrade pip
+
+RUN echo "安装requests" && \
+    pip3 install --no-cache-dir requests
+
+RUN echo "安装lxml" && \
+    pip3 install --no-cache-dir lxml
+
+RUN echo "安装pycryptodome" && \
+    pip3 install --no-cache-dir pycryptodome
+
+RUN echo "安装ujson" && \
+    pip3 install --no-cache-dir ujson
+
+RUN echo "安装pyquery" && \
+    pip3 install --no-cache-dir pyquery
+
+RUN echo "安装jsonpath" && \
+    pip3 install --no-cache-dir jsonpath
+
+RUN echo "安装json5" && \
+    pip3 install --no-cache-dir json5
+
+RUN echo "安装jinja2" && \
+    pip3 install --no-cache-dir jinja2
+
+RUN echo "安装cachetools" && \
+    pip3 install --no-cache-dir cachetools
+
+RUN echo "安装pympler" && \
     pip3 install --no-cache-dir pympler
 
 WORKDIR /drpy-node
 
 EXPOSE 5757
 
-# JSON格式CMD
 CMD ["node", "index.js"]
     
