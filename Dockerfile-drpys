@@ -1,64 +1,61 @@
-# 使用稳定的基础镜像
-FROM node:22.16.0-alpine3.20
+# 选择更稳定的Alpine基础镜像（避免最新版可能的兼容性问题）
+FROM node:22.16.0-alpine3.19
 
-# 初始化包管理并安装必要工具
+# 1. 彻底清理残留缓存，避免旧文件干扰
 RUN rm -rf /var/cache/apk/* && \
-    apk update --no-cache && \
-    apk upgrade --no-cache && \
-    apk add --no-cache bash coreutils
+    rm -rf /usr/lib/python3*/*-packages && \
+    rm -rf /root/.cache/pip
 
-# 设置时区
+# 2. 先安装基础工具，再单独安装Python（拆分步骤减少冲突）
+RUN apk add --no-cache bash coreutils curl
+
+# 3. 安装Python3及pip（明确指定版本，避免依赖混乱）
+RUN apk add --no-cache \
+    python3=3.11.8-r0 \
+    py3-pip=23.3.1-r0 \
+    py3-setuptools=68.2.2-r0
+
+# 4. 验证Python和pip的可执行路径（关键：确保命令能被正确找到）
+RUN echo "Python路径: $(which python3)" && \
+    echo "pip路径: $(which pip3)" && \
+    python3 --version && \
+    pip3 --version
+
+# 5. 解决Alpine中pip可能的SSL问题（添加证书）
+RUN apk add --no-cache ca-certificates && \
+    update-ca-certificates
+
+# 6. 升级pip（使用python3 -m pip的方式，比直接用pip3更可靠）
+RUN echo "升级pip" && \
+    python3 -m pip install --no-cache-dir --upgrade pip
+
+# 7. 安装编译依赖（为后续lxml等包做准备）
+RUN apk add --no-cache \
+    gcc \
+    musl-dev \
+    python3-dev \
+    libxml2-dev \
+    libxslt-dev \
+    nodejs npm
+
+# 8. 设置时区
 RUN apk add --no-cache tzdata && \
     cp /usr/share/zoneinfo/Asia/Shanghai /etc/localtime && \
     echo "Asia/Shanghai" > /etc/timezone && \
     rm -rf /var/cache/apk/*
 
-# 安装Python及编译依赖
-RUN apk add --no-cache python3 py3-pip && \
-    apk add --no-cache gcc musl-dev python3-dev libxml2-dev libxslt-dev && \
-    apk add --no-cache nodejs npm curl
-
-# 验证Python和pip版本
-RUN echo "Python版本: $(python3 --version)" && \
-    echo "pip版本: $(pip3 --version)"
-
-# 分步安装Python包，每步都添加日志
-RUN echo "升级pip" && \
-    pip3 install --no-cache-dir --upgrade pip
-
-RUN echo "安装requests" && \
-    pip3 install --no-cache-dir requests
-
-RUN echo "安装lxml" && \
-    pip3 install --no-cache-dir lxml
-
-RUN echo "安装pycryptodome" && \
-    pip3 install --no-cache-dir pycryptodome
-
-RUN echo "安装ujson" && \
-    pip3 install --no-cache-dir ujson
-
-RUN echo "安装pyquery" && \
-    pip3 install --no-cache-dir pyquery
-
-RUN echo "安装jsonpath" && \
-    pip3 install --no-cache-dir jsonpath
-
-RUN echo "安装json5" && \
-    pip3 install --no-cache-dir json5
-
-RUN echo "安装jinja2" && \
-    pip3 install --no-cache-dir jinja2
-
-RUN echo "安装cachetools" && \
-    pip3 install --no-cache-dir cachetools
-
-RUN echo "安装pympler" && \
-    pip3 install --no-cache-dir pympler
+# 9. 安装Python依赖包
+RUN python3 -m pip install --no-cache-dir requests
+RUN python3 -m pip install --no-cache-dir lxml
+RUN python3 -m pip install --no-cache-dir pycryptodome
+RUN python3 -m pip install --no-cache-dir ujson
+RUN python3 -m pip install --no-cache-dir pyquery
+RUN python3 -m pip install --no-cache-dir jsonpath
+RUN python3 -m pip install --no-cache-dir json5
+RUN python3 -m pip install --no-cache-dir jinja2
+RUN python3 -m pip install --no-cache-dir cachetools
+RUN python3 -m pip install --no-cache-dir pympler
 
 WORKDIR /drpy-node
-
 EXPOSE 5757
-
 CMD ["node", "index.js"]
-    
