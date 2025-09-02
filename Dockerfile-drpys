@@ -1,14 +1,13 @@
 FROM node:22.16.0-alpine3.20
 
-# 1. 清理缓存 + 设置国内PyPI源（解决网络问题）
+# 1. 清理缓存 + 配置国内PyPI源
 RUN rm -rf /var/cache/apk/* && \
-    # 配置阿里云PyPI源，加速安装并避免国外源连接问题
     mkdir -p /root/.pip && \
     echo "[global]" > /root/.pip/pip.conf && \
     echo "index-url = https://mirrors.aliyun.com/pypi/simple/" >> /root/.pip/pip.conf && \
     echo "trusted-host = mirrors.aliyun.com" >> /root/.pip/pip.conf
 
-# 2. 安装基础工具 + Python环境（一次性安装，依赖列表缩进必须统一）
+# 2. 安装依赖（所有参数用4个空格缩进，确保完全一致）
 RUN apk add --no-cache \
     bash \
     coreutils \
@@ -16,15 +15,15 @@ RUN apk add --no-cache \
     python3 \
     py3-pip \
     py3-setuptools \
-    ca-certificates \  # 解决SSL证书问题
-    gcc \              # 编译依赖（修正缩进，与其他参数对齐）
+    ca-certificates \
+    gcc \
     musl-dev \
     python3-dev \
     libxml2-dev \
     libxslt-dev \
     tzdata
 
-# 3. 验证Python环境（确认基础功能正常）
+# 3. 验证Python环境
 RUN echo "Python版本: $(python3 --version)" && \
     echo "pip版本: $(python3 -m pip --version)"
 
@@ -33,7 +32,7 @@ RUN cp /usr/share/zoneinfo/Asia/Shanghai /etc/localtime && \
     echo "Asia/Shanghai" > /etc/timezone && \
     rm -rf /var/cache/apk/*
 
-# 5. 用系统预装pip安装依赖（不升级pip，避免路径冲突）
+# 5. 安装Python依赖
 RUN python3 -m pip install --no-cache-dir requests
 RUN python3 -m pip install --no-cache-dir lxml
 RUN python3 -m pip install --no-cache-dir pycryptodome
