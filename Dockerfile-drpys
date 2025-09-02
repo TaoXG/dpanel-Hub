@@ -8,7 +8,7 @@ RUN rm -rf /var/cache/apk/* && \
     echo "index-url = https://mirrors.aliyun.com/pypi/simple/" >> /root/.pip/pip.conf && \
     echo "trusted-host = mirrors.aliyun.com" >> /root/.pip/pip.conf
 
-# 2. 安装基础工具 + Python环境（一次性安装，避免分步冲突）
+# 2. 安装基础工具 + Python环境（一次性安装，依赖列表缩进必须统一）
 RUN apk add --no-cache \
     bash \
     coreutils \
@@ -17,7 +17,7 @@ RUN apk add --no-cache \
     py3-pip \
     py3-setuptools \
     ca-certificates \  # 解决SSL证书问题
-    gcc \              # 编译依赖
+    gcc \              # 编译依赖（修正缩进，与其他参数对齐）
     musl-dev \
     python3-dev \
     libxml2-dev \
@@ -33,8 +33,7 @@ RUN cp /usr/share/zoneinfo/Asia/Shanghai /etc/localtime && \
     echo "Asia/Shanghai" > /etc/timezone && \
     rm -rf /var/cache/apk/*
 
-# 5. 关键修复：不升级pip，直接用系统预装pip安装依赖
-# （Alpine预装的pip已足够用，升级反而可能引发路径冲突）
+# 5. 用系统预装pip安装依赖（不升级pip，避免路径冲突）
 RUN python3 -m pip install --no-cache-dir requests
 RUN python3 -m pip install --no-cache-dir lxml
 RUN python3 -m pip install --no-cache-dir pycryptodome
