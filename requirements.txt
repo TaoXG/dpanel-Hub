@@ -3,7 +3,7 @@ lxml
 pycryptodome
 ujson
 pyquery
-jsonpath
+jsonpath-ng  # 修正包名
 json5
 jinja2
 cachetools
