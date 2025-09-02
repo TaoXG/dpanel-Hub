@@ -1,7 +1,10 @@
-FROM node:22.16.0-alpine
+# 使用更稳定的基础镜像版本
+FROM node:22.16.0-alpine3.20
 
-# 清除缓存并更新系统
-RUN apk update && apk upgrade && rm -rf /var/cache/apk/*
+# 完全重新初始化包管理，确保没有缓存干扰
+RUN rm -rf /var/cache/apk/* && \
+    apk update --no-cache && \
+    apk upgrade --no-cache
 
 # 设置时区
 RUN apk add --no-cache tzdata && \
@@ -27,23 +30,29 @@ RUN apk add --no-cache \
     coreutils && \
     rm -rf /var/cache/apk/*
 
-# 安装必要的Python包
-RUN python3 -m ensurepip --upgrade && \
-    pip3 install --no-cache-dir --upgrade pip && \
-    pip3 install --no-cache-dir \
-    requests \
-    lxml \
-    pycryptodome \
-    ujson \
-    pyquery \
-    jsonpath \
-    json5 \
-    jinja2 \
-    cachetools \
-    pympler
+# 单独创建一个安装脚本，避免命令行缓存问题
+RUN echo '#!/bin/sh\n\
+python3 -m ensurepip --upgrade\n\
+pip3 install --no-cache-dir --upgrade pip\n\
+pip3 install --no-cache-dir \\\n\
+requests \\\n\
+lxml \\\n\
+pycryptodome \\\n\
+ujson \\\n\
+pyquery \\\n\
+jsonpath \\\n\
+json5 \\\n\
+jinja2 \\\n\
+cachetools \\\n\
+pympler' > /install_python_packages.sh && \
+    chmod +x /install_python_packages.sh && \
+    /install_python_packages.sh && \
+    rm /install_python_packages.sh
 
 WORKDIR /drpy-node
 
 EXPOSE 5757
 
-CMD ["node" "index.js"]
+# 使用JSON格式的CMD以解决警告
+CMD ["node", "index.js"]
+    
