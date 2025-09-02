@@ -1,48 +1,53 @@
 FROM node:22.16.0-alpine3.20
 
-# 1. 清理缓存 + 配置国内PyPI源
+# 1. 优先解决网络问题：使用多个国内源备用，同时安装DNS工具
 RUN rm -rf /var/cache/apk/* && \
+    # 安装DNS工具，确保域名解析正常
+    apk add --no-cache bind-tools && \
+    # 测试PyPI源域名解析（排查DNS问题）
+    nslookup mirrors.aliyun.com && \
+    nslookup pypi.tuna.tsinghua.edu.cn && \
+    # 配置多个国内源（阿里云+清华，互为备用）
     mkdir -p /root/.pip && \
     echo "[global]" > /root/.pip/pip.conf && \
-    echo "index-url = https://mirrors.aliyun.com/pypi/simple/" >> /root/.pip/pip.conf && \
-    echo "trusted-host = mirrors.aliyun.com" >> /root/.pip/pip.conf
+    echo "index-url = https://mirrors.aliyun.com/pypi/simple/;https://pypi.tuna.tsinghua.edu.cn/simple/" >> /root/.pip/pip.conf && \
+    echo "trusted-host = mirrors.aliyun.com,pypi.tuna.tsinghua.edu.cn" >> /root/.pip/pip.conf
 
-# 2. 安装依赖（所有参数用4个空格缩进，确保完全一致）
+# 2. 安装最小化依赖（只保留必要组件，避免干扰）
 RUN apk add --no-cache \
-    bash \
-    coreutils \
-    curl \
     python3 \
     py3-pip \
-    py3-setuptools \
-    ca-certificates \
-    gcc \
-    musl-dev \
-    python3-dev \
-    libxml2-dev \
-    libxslt-dev \
-    tzdata
+    ca-certificates  # 强制安装SSL证书，确保HTTPS连接正常
 
-# 3. 验证Python环境
-RUN echo "Python版本: $(python3 --version)" && \
-    echo "pip版本: $(python3 -m pip --version)"
+# 3. 详细验证Python/pip环境（定位基础问题）
+RUN echo "=== 环境验证 ===" && \
+    echo "Python可执行路径: $(which python3)" && \
+    echo "Python版本: $(python3 --version)" && \
+    echo "pip模块路径: $(python3 -m site --user-site)" && \
+    echo "pip版本: $(python3 -m pip --version)" && \
+    echo "pip配置文件: $(cat /root/.pip/pip.conf)" && \
+    echo "=== 网络验证 ===" && \
+    # 测试HTTPS连接是否正常
+    curl -I https://mirrors.aliyun.com/pypi/simple/requests/
 
-# 4. 设置时区
-RUN cp /usr/share/zoneinfo/Asia/Shanghai /etc/localtime && \
-    echo "Asia/Shanghai" > /etc/timezone && \
-    rm -rf /var/cache/apk/*
+# 4. 安装Python依赖（先装简单的requests，再装复杂依赖）
+RUN echo "=== 安装requests ===" && \
+    python3 -m pip install --no-cache-dir --verbose requests && \
+    echo "=== 安装其他依赖 ===" && \
+    python3 -m pip install --no-cache-dir --verbose lxml && \
+    python3 -m pip install --no-cache-dir --verbose pycryptodome && \
+    python3 -m pip install --no-cache-dir --verbose ujson && \
+    python3 -m pip install --no-cache-dir --verbose pyquery && \
+    python3 -m pip install --no-cache-dir --verbose jsonpath && \
+    python3 -m pip install --no-cache-dir --verbose json5 && \
+    python3 -m pip install --no-cache-dir --verbose jinja2 && \
+    python3 -m pip install --no-cache-dir --verbose cachetools && \
+    python3 -m pip install --no-cache-dir --verbose pympler
 
-# 5. 安装Python依赖
-RUN python3 -m pip install --no-cache-dir requests
-RUN python3 -m pip install --no-cache-dir lxml
-RUN python3 -m pip install --no-cache-dir pycryptodome
-RUN python3 -m pip install --no-cache-dir ujson
-RUN python3 -m pip install --no-cache-dir pyquery
-RUN python3 -m pip install --no-cache-dir jsonpath
-RUN python3 -m pip install --no-cache-dir json5
-RUN python3 -m pip install --no-cache-dir jinja2
-RUN python3 -m pip install --no-cache-dir cachetools
-RUN python3 -m pip install --no-cache-dir pympler
+# 5. 基础配置（时区、工作目录等）
+RUN apk add --no-cache tzdata && \
+    cp /usr/share/zoneinfo/Asia/Shanghai /etc/localtime && \
+    echo "Asia/Shanghai" > /etc/timezone
 
 WORKDIR /drpy-node
 EXPOSE 5757
