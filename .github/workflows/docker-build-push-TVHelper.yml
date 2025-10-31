@@ -27,5 +27,5 @@ jobs:
           context: .
           file: ./Dockerfile-TVHelper
           push: true
-          tags: taoxg/TVHelper
+          tags: taoxg/TVHelper:latest
           platforms: linux/amd64,linux/arm64,linux/arm/v7
