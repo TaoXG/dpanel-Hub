@@ -12,7 +12,7 @@ WORKDIR /app/
 #ENV SOCKS5_PROXY=""
  
 # 暴露应用端口
-EXPOSE 16214
+EXPOSE 16215
  
 # 容器启动命令 
 ENTRYPOINT ["/app/TVHelper"]
