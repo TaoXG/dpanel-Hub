@@ -13,10 +13,16 @@ RUN apk add --no-cache \
     bash \
     curl \
     coreutils  # 确保 nohup 可用
-
+    libopencv \
+    opencv-dev \
+    ffmpeg \
+    libpng-dev \
+    libjpeg-turbo-dev \
+    zlib-dev
+    
 RUN python3 -m venv /app/myenv && \
     /app/myenv/bin/pip install --upgrade pip && \
-    /app/myenv/bin/pip install --no-cache-dir --upgrade pypinyin tqdm requests pysocks pyyaml pytz httpx bs4 aiohttp telethon docker qrcode webdavclient3 dotenv schedule
+    /app/myenv/bin/pip install --no-cache-dir --upgrade pypinyin tqdm requests pysocks pyyaml pytz httpx bs4 aiohttp telethon docker qrcode webdavclient3 dotenv schedule opencv-python-headless numpy bott
     
 # 列出目录内容（调试用）
 RUN ls -al
