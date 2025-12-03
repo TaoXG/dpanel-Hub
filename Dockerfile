@@ -12,7 +12,7 @@ RUN apk add --no-cache \
     nodejs npm \
     bash \
     curl \
-    coreutils  # 确保 nohup 可用
+    coreutils \ # 确保 nohup 可用
     libopencv \
     opencv-dev \
     ffmpeg \
