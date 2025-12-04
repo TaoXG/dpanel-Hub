@@ -1,45 +1,36 @@
 FROM registry.cn-hangzhou.aliyuncs.com/dpanel/dpanel:beta-lite  
  
-# 1. 设置时区
+# 设置时区
 RUN apk add --no-cache tzdata && \
     cp /usr/share/zoneinfo/Asia/Shanghai /etc/localtime && \
-    echo "Asia/Shanghai" > /etc/timezone 
- 
-# 修正后的依赖安装指令（确保所有包名在同一个RUN指令内）
+    echo "Asia/Shanghai" > /etc/timezone
+
+# 使用 apk 安装依赖（包含 coreutils 解决 nohup 问题）
 RUN apk add --no-cache \
     python3 \
     py3-pip \
     nodejs npm \
     bash \
     curl \
-    coreutils \
-    build-base \
-    python3-dev \ 
-    musl-dev \
-    opencv-dev \
-    libjpeg-turbo-dev \
-    zlib-dev 
- 
-# 3. 创建虚拟环境并安装Python包
+    coreutils  # 确保 nohup 可用
+
 RUN python3 -m venv /app/myenv && \
     /app/myenv/bin/pip install --upgrade pip && \
-    /app/myenv/bin/pip install --no-cache-dir --upgrade \
-    numpy \
-    opencv-python-headless \
-    bottle \
-    pypinyin tqdm requests pysocks pyyaml pytz httpx bs4 aiohttp telethon docker qrcode webdavclient3 dotenv schedule
- 
-# 4. 调试信息（可选）
+    /app/myenv/bin/pip install --no-cache-dir --upgrade pypinyin tqdm requests pysocks pyyaml pytz httpx bs4 aiohttp telethon docker qrcode webdavclient3 dotenv schedule
+    
+# 列出目录内容（调试用）
 RUN ls -al
- 
-# 5. 启动脚本（保持不变）
-RUN echo '#!/bin/sh' > /entrypoint.sh  && \
-    echo 'set -x' >> /entrypoint.sh  && \
-    echo 'if [ -n "$STARTUP_COMMAND" ]; then' >> /entrypoint.sh  && \
-    echo '  echo "执行前置自定义命令: $STARTUP_COMMAND"' >> /entrypoint.sh  && \
-    echo '  eval "$STARTUP_COMMAND"' >> /entrypoint.sh  && \
-    echo 'fi' >> /entrypoint.sh  && \
-    echo '/app/server/dpanel server:start -f /app/server/config.yaml'  >> /entrypoint.sh  && \
-    chmod +x /entrypoint.sh  
- 
-ENTRYPOINT ["/entrypoint.sh"] 
+
+# 创建启动脚本：先执行自定义命令，再执行原命令（原命令作为主进程）
+# 移除了命令中的注释，避免构建错误
+RUN echo '#!/bin/sh' > /entrypoint.sh && \
+    echo 'set -x' >> /entrypoint.sh && \
+    echo 'if [ -n "$STARTUP_COMMAND" ]; then' >> /entrypoint.sh && \
+    echo '  echo "执行前置自定义命令: $STARTUP_COMMAND"' >> /entrypoint.sh && \
+    echo '  eval "$STARTUP_COMMAND"' >> /entrypoint.sh && \
+    echo 'fi' >> /entrypoint.sh && \
+    echo '/app/server/dpanel server:start -f /app/server/config.yaml' >> /entrypoint.sh && \
+    chmod +x /entrypoint.sh
+
+# 设置入口点为自定义脚本
+ENTRYPOINT ["/entrypoint.sh"]
