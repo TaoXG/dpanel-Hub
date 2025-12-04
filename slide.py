@@ -27,7 +27,7 @@ def find_slide_distance(bg_base64: str, front_base64: str) -> int:
 
     # 2️⃣ Canny 边缘检测（增强结构特征）
     bg_edge = cv2.Canny(bg_gray, 100, 200)
-    slider_edge = cv2.Canny(slider_gray, 100， 200)
+    slider_edge = cv2.Canny(slider_gray, 100, 200)
 
     # 3️⃣ 模板匹配
     result = cv2.matchTemplate(bg_edge, slider_edge, cv2.TM_CCOEFF_NORMED)
@@ -73,3 +73,4 @@ application = default_app()
 
 if __name__ == '__main__':
     application.run(host='0.0.0.0', port=3001)
+
