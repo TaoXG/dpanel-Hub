@@ -1,3 +1,4 @@
-opencv-python>=4.8.0
-numpy>=1.26.0
-bottle>=0.12.25
+# 选择经过多架构验证的稳定版本
+opencv-python==4.5.5.62
+numpy==1.23.5
+bottle==0.12.25
