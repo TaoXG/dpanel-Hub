@@ -1,29 +1,42 @@
-# 基础镜像：选择Python 3.9-slim（轻量且兼容大部分依赖）
+# 基础镜像：Python 3.9-slim（更换国内源解决更新失败）
 FROM python:3.9-slim
 
 # 设置工作目录
 WORKDIR /app
 
-# 安装系统依赖（OpenCV 需要的底层库）
-RUN apt-get update && apt-get install -y --no-install-recommends \
+# ========== 关键修复：更换国内清华源，解决apt-get update失败 ==========
+RUN sed -i 's/deb.debian.org/mirrors.tuna.tsinghua.edu.cn/g' /etc/apt/sources.list \
+    && sed -i 's/security.debian.org/mirrors.tuna.tsinghua.edu.cn/g' /etc/apt/sources.list
+
+# 安装系统依赖（添加 --fix-missing 修复依赖缺失，增加超时重试）
+RUN apt-get update --fix-missing && apt-get install -y --no-install-recommends \
     libgl1-mesa-glx \
     libglib2.0-0 \
+    # 可选：添加curl用于健康检查（如果需要）
+    curl \
     && rm -rf /var/lib/apt/lists/*
 
-# 复制依赖文件（先复制requirements-slide.txt，利用Docker缓存）
+# ========== 修复pip源，加速依赖安装 ==========
+RUN pip config set global.index-url https://pypi.tuna.tsinghua.edu.cn/simple
+
+# 复制依赖文件
 COPY requirements-slide.txt .
 
-# 安装Python依赖
-RUN pip install --no-cache-dir -i https://pypi.tuna.tsinghua.edu.cn/simple \
+# 安装Python依赖（添加--default-timeout避免超时）
+RUN pip install --no-cache-dir --default-timeout=100 \
     opencv-python \
     numpy \
     bottle
 
-# 复制脚本文件到工作目录
+# 复制脚本文件
 COPY slide.py .
 
-# 暴露端口（与脚本中port=3001对应）
+# 暴露端口
 EXPOSE 3001
 
-# 设置容器启动命令（确保服务持续运行，即使崩溃也重启）
-CMD ["python"， "-u", "slide.py"]
+# 健康检查（可选，增强服务可用性）
+HEALTHCHECK --interval=30s --timeout=5s --retries=3 \
+  CMD curl -f http://localhost:3001/ || exit 1
+
+# CMD 保持JSON格式（消除警告）
+CMD ["python", "-u", "slide"]
