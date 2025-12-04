@@ -24,9 +24,9 @@ RUN apk add --no-cache \
 RUN python3 -m venv /app/myenv && \
     /app/myenv/bin/pip install --upgrade pip && \
     /app/myenv/bin/pip install --no-cache-dir --upgrade \
-    numpy \                       # 必须优先安装（OpenCV依赖）
-    opencv-python-headless \      # 无GUI的OpenCV
-    bottle \                      # Web框架
+    numpy \
+    opencv-python-headless \
+    bottle \
     pypinyin tqdm requests pysocks pyyaml pytz httpx bs4 aiohttp telethon docker qrcode webdavclient3 dotenv schedule
  
 # 4. 调试信息（可选）
