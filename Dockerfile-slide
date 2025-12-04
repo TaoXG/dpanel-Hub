@@ -1,10 +1,27 @@
-# 已预装OpenCV和依赖，无需手动编译
-FROM ultralytics/yolov5:latest-python3.9
+FROM python:3.9-slim-bullseye
+
+# 关键：强制pip使用预编译包，禁用源码编译
+ENV PIP_ONLY_BINARY=opencv-python,numpy
+ENV PIP_NO_BINARY=:none:
+ENV PIP_DEFAULT_TIMEOUT=300
 
 WORKDIR /app
 
-# 仅安装bottle（OpenCV和numpy已预装）
-RUN pip install --no-cache-dir --user bottle==0.12.25 -i https://pypi.tuna.tsinghua.edu.cn/simple
+# 仅安装必需的运行依赖（无需编译工具）
+RUN apt-get update -yq && apt-get install -yq --no-install-recommends \
+    libgl1-mesa-glx \
+    libglib2.0-0 \
+    && apt-get clean && rm -rf /var/lib/apt/lists/*
+
+# 复制依赖文件
+COPY requirements-slide.txt .
+
+# 安装预编译版本（headless无GUI，体积小、兼容性高）
+RUN pip install --no-cache-dir --user \
+    -i https://pypi.tuna.tsinghua.edu.cn/simple \
+    opencv-python-headless==4.5.5.62 \
+    numpy==1.23.5 \
+    bottle==0.12.25
 
 COPY slide.py .
 EXPOSE 3001
