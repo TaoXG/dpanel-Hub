@@ -14,7 +14,7 @@ RUN apk add --no-cache \
 
 # 安装Python包（纯预编译，无源码编译）
 RUN pip install \
-    pillow==9.5.0 \    # 适配Alpine的稳定版本
+    pillow==9.5.0 \
     numpy==1.23.5 \
     bottle==0.12.25
 
