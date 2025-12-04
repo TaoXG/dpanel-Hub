@@ -4,7 +4,8 @@ from io import BytesIO
 from bottle import post, run, request
 
 def read_base64_image(base64_str: str):
-    if ',' 在 base64_str:
+    # 注意：这里是英文 in，不是中文“在”
+    if ',' in base64_str:
         base64_str = base64_str.split(',')[1]
     image_data = base64.b64decode(base64_str)
     return Image.open(BytesIO(image_data)).convert('RGB')
@@ -16,7 +17,7 @@ def find_slide_distance(bg_base64: str, front_base64: str) -> int:
     
     # 边缘检测
     bg_gray = bg.convert('L').filter(ImageFilter.GaussianBlur(radius=1)).filter(ImageFilter.FIND_EDGES)
-    slider_gray = slider.convert('L')。filter(ImageFilter.GaussianBlur(radius=1)).filter(ImageFilter.FIND_EDGES)
+    slider_gray = slider.convert('L').filter(ImageFilter.GaussianBlur(radius=1)).filter(ImageFilter.FIND_EDGES)
     
     # 模板匹配（纯PIL实现）
     bg_w, bg_h = bg_gray.size
@@ -24,7 +25,7 @@ def find_slide_distance(bg_base64: str, front_base64: str) -> int:
     max_corr = -1
     best_x = 0
     
-    for x 在 range(bg_w - slider_w + 1):
+    for x in range(bg_w - slider_w + 1):
         # 截取窗口
         window = bg_gray.crop((x, 0, x+slider_w, slider_h))
         # 计算像素相似度
@@ -34,7 +35,7 @@ def find_slide_distance(bg_base64: str, front_base64: str) -> int:
             max_corr = corr
             best_x = x
     
-    return best_x, bg, (best_x, 0)， (slider_h, slider_w)
+    return best_x, bg, (best_x, 0), (slider_h, slider_w)
 
 @post('/')
 def index():
@@ -45,4 +46,5 @@ def index():
     except Exception as e:
         return {'code': 400, 'msg': str(e)}
 
+# 启动服务（确保端口和Docker暴露的一致）
 run(host='0.0.0.0', port=3001)
