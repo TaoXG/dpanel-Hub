@@ -1,7 +1,21 @@
 FROM python:3.9-alpine
+
+# 安装PIL必需的系统依赖（Alpine专用）
 RUN apk add --no-cache libgcc zlib-dev jpeg-dev
-RUN pip install --no-cache-dir -i https://pypi.tuna.tsinghua.edu.cn/simple pillow==9.5.0 bottle==0.12.25
+
+# 安装Python依赖（指定稳定版本，避免兼容问题）
+RUN pip install --no-cache-dir -i https://pypi.tuna.tsinghua.edu.cn/simple \
+    pillow==9.5.0 \
+    bottle==0.12.25
+
+# 工作目录
 WORKDIR /app
+
+# 复制修正后的脚本（确保本地脚本名是slide.py）
 COPY slide.py .
+
+# 暴露端口
 EXPOSE 3001
+
+# 启动命令（-u 禁用缓冲，方便看日志）
 CMD ["python", "-u", "slide.py"]
