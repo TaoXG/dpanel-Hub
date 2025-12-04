@@ -10,8 +10,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     libglib2.0-0 \
     && rm -rf /var/lib/apt/lists/*
 
-# 复制依赖文件（先复制requirements.txt，利用Docker缓存）
-COPY requirements.txt .
+# 复制依赖文件（先复制requirements-slide.txt，利用Docker缓存）
+COPY requirements-slide.txt .
 
 # 安装Python依赖
 RUN pip install --no-cache-dir -i https://pypi.tuna.tsinghua.edu.cn/simple \
