@@ -14,7 +14,7 @@ RUN apk add --no-cache \
     curl \
     coreutils \
     build-base \
-    python3-dev \                 # 现在作为apk add的参数而非独立行 
+    python3-dev \ 
     musl-dev \
     opencv-dev \
     libjpeg-turbo-dev \
