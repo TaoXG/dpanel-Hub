@@ -1,15 +1,27 @@
-# 超轻量Python镜像，无任何编译依赖
-FROM python:3.9-slim-bullseye
+# 使用Alpine镜像（体积<100MB，无QEMU兼容问题）
+FROM python:3.9-alpine
 
-WORKDIR /app
+# 设置环境变量：禁用缓存、强制国内源
+ENV PIP_NO_CACHE_DIR=1
+ENV PIP_INDEX_URL=https://pypi.tuna.tsinghua.edu.cn/simple
 
-# 仅安装PIL和bottle（无需系统依赖）
-RUN pip install --no-cache-dir -i https://pypi.tuna.tsinghua.edu.cn/simple \
-    pillow==10.0.1 \
+# 安装Alpine必需的基础依赖（仅5MB）
+RUN apk add --no-cache \
+    libgcc \
+    musl-dev \
+    zlib-dev \
+    jpeg-dev
+
+# 安装Python包（纯预编译，无源码编译）
+RUN pip install \
+    pillow==9.5.0 \    # 适配Alpine的稳定版本
     numpy==1.23.5 \
     bottle==0.12.25
 
-# 复制脚本
+# 工作目录
+WORKDIR /app
+
+# 复制脚本（使用纯PIL版本的slide_match.py）
 COPY slide.py .
 
 # 暴露端口
