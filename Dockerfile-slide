@@ -1,28 +1,19 @@
+# 超轻量Python镜像，无任何编译依赖
 FROM python:3.9-slim-bullseye
-
-# 关键：强制pip使用预编译包，禁用源码编译
-ENV PIP_ONLY_BINARY=opencv-python,numpy
-ENV PIP_NO_BINARY=:none:
-ENV PIP_DEFAULT_TIMEOUT=300
 
 WORKDIR /app
 
-# 仅安装必需的运行依赖（无需编译工具）
-RUN apt-get update -yq && apt-get install -yq --no-install-recommends \
-    libgl1-mesa-glx \
-    libglib2.0-0 \
-    && apt-get clean && rm -rf /var/lib/apt/lists/*
-
-# 复制依赖文件
-COPY requirements-slide.txt .
-
-# 安装预编译版本（headless无GUI，体积小、兼容性高）
-RUN pip install --no-cache-dir --user \
-    -i https://pypi.tuna.tsinghua.edu.cn/simple \
-    opencv-python-headless==4.5.5.62 \
+# 仅安装PIL和bottle（无需系统依赖）
+RUN pip install --no-cache-dir -i https://pypi.tuna.tsinghua.edu.cn/simple \
+    pillow==10.0.1 \
     numpy==1.23.5 \
     bottle==0.12.25
 
+# 复制脚本
 COPY slide.py .
+
+# 暴露端口
 EXPOSE 3001
+
+# 启动命令
 CMD ["python", "-u", "slide.py"]
