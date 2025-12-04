@@ -1,29 +1,29 @@
-# 基础镜像：Python 3.9-slim（更换国内源解决更新失败）
-FROM python:3.9-slim
+# 基础镜像：锁定Python 3.9-slim的Debian版本（bullseye），提升稳定性
+FROM python:3.9-slim-bullseye
 
 # 设置工作目录
 WORKDIR /app
 
-# ========== 关键修复：更换国内清华源，解决apt-get update失败 ==========
-RUN sed -i 's/deb.debian.org/mirrors.tuna.tsinghua.edu.cn/g' /etc/apt/sources.list \
-    && sed -i 's/security.debian.org/mirrors.tuna.tsinghua.edu.cn/g' /etc/apt/sources.list
-
-# 安装系统依赖（添加 --fix-missing 修复依赖缺失，增加超时重试）
-RUN apt-get update --fix-missing && apt-get install -y --no-install-recommends \
+# 关键：不替换源，直接用官方源安装依赖（GitHub构建环境访问官方源无压力）
+# 添加 -yq 静默安装，--fix-missing 修复依赖索引
+RUN apt-get update --fix-missing -yq \
+    && apt-get install -yq --no-install-recommends \
     libgl1-mesa-glx \
     libglib2.0-0 \
-    # 可选：添加curl用于健康检查（如果需要）
+    # 可选：curl用于健康检查
     curl \
-    && rm -rf /var/lib/apt/lists/*
+    # 清理缓存，减少镜像体积
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
-# ========== 修复pip源，加速依赖安装 ==========
-RUN pip config set global.index-url https://pypi.tuna.tsinghua.edu.cn/simple
+# 设置pip源（GitHub构建可访问清华源，也可改用官方源）
+RUN pip config set global.index-url https://pypi.org/simple
 
 # 复制依赖文件
 COPY requirements-slide.txt .
 
-# 安装Python依赖（添加--default-timeout避免超时）
-RUN pip install --no-cache-dir --default-timeout=100 \
+# 安装Python依赖（增加超时，避免网络波动）
+RUN pip install --no-cache-dir --default-timeout=300 \
     opencv-python \
     numpy \
     bottle
@@ -34,9 +34,9 @@ COPY slide.py .
 # 暴露端口
 EXPOSE 3001
 
-# 健康检查（可选，增强服务可用性）
+# 健康检查（可选）
 HEALTHCHECK --interval=30s --timeout=5s --retries=3 \
   CMD curl -f http://localhost:3001/ || exit 1
 
-# CMD 保持JSON格式（消除警告）
-CMD ["python", "-u", "slide"]
+# CMD 使用JSON格式，消除警告
+CMD ["python", "-u", "slide.py"]
