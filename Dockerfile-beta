@@ -5,7 +5,7 @@ RUN apk add --no-cache tzdata && \
     cp /usr/share/zoneinfo/Asia/Shanghai /etc/localtime && \
     echo "Asia/Shanghai" > /etc/timezone 
  
-# 2. 安装系统依赖（新增OpenCV和编译工具）
+# 修正后的依赖安装指令（确保所有包名在同一个RUN指令内）
 RUN apk add --no-cache \
     python3 \
     py3-pip \
@@ -13,11 +13,11 @@ RUN apk add --no-cache \
     bash \
     curl \
     coreutils \
-    build-base \                  # 编译Python包所需
-    python3-dev \                 # 确保numpy等可编译
-    musl-dev \                    # 兼容性依赖 
-    opencv-dev \                  # OpenCV头文件
-    libjpeg-turbo-dev \           # 图像处理依赖
+    build-base \
+    python3-dev \                 # 现在作为apk add的参数而非独立行 
+    musl-dev \
+    opencv-dev \
+    libjpeg-turbo-dev \
     zlib-dev 
  
 # 3. 创建虚拟环境并安装Python包
