@@ -16,7 +16,7 @@ COPY slide.py .
 # 安装 Python 依赖 
 RUN pip install --no-cache-dir \
     bottle \
-    opencv-python-headless \
+    opencv-python \
     numpy 
  
 # 暴露端口
