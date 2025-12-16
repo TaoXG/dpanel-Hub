@@ -30,7 +30,7 @@ jobs:
           标签: taoxg/dpanel:beta-lite
           platforms: linux/amd64
           # 缓存优化
-          cache-from: type=registry,ref=taoxg/dpanel:buildcache
-          cache-to: type=registry,ref=taoxg/dpanel:buildcache,mode=max
+          cache-from: type=registry,ref=taoxg/dpanel:betabuildcache
+          cache-to: type=registry,ref=taoxg/dpanel:betabuildcache,mode=max
           pull: true  
           provenance: false  # 关闭溯源（减少模拟负担）
