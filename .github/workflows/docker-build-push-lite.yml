@@ -59,6 +59,16 @@ jobs:
           platforms: linux/amd64,linux/arm64,linux/arm/v7
           build-args: |
             APP_VERSION=${{ steps.version.outputs.VERSION }}
-          no-cache: true
-          pull: true  # 强制拉取最新的基础镜像（如果锁定哈希则可删）
+          # 缓存优化
+          cache-from: type=registry,ref=taoxg/dpanel:buildcache
+          cache-to: type=registry,ref=taoxg/dpanel:buildcache,mode=max
+          pull: true  
           provenance: false  # 关闭溯源（减少模拟负担）
+          
+      - name: Verify multi-arch images (可选)
+        run: |
+          curl -L https://github.com/google/go-containerregistry/releases/latest/download/go-containerregistry_Linux_x86_64.tar.gz | tar xzf - crane
+          ./crane manifest taoxg/dpanel:lite | jq '.manifests[].platform'
+          # 简单验证 ARM64 镜像可运行
+          docker pull --platform linux/arm64 taoxg/dpanel:lite
+          docker run --rm --platform linux/arm64 taoxg/dpanel:lite sh -c "python3 --version && node --version"
