@@ -65,10 +65,67 @@ jobs:
           pull: true  
           provenance: false  # 关闭溯源（减少模拟负担）
           
-      - name: Verify multi-arch images (可选)
+      - name: Verify multi-architecture images
         run: |
-          curl -L https://github.com/google/go-containerregistry/releases/latest/download/go-containerregistry_Linux_x86_64.tar.gz | tar xzf - crane
-          ./crane manifest taoxg/dpanel:lite | jq '.manifests[].platform'
-          # 简单验证 ARM64 镜像可运行
-          docker pull --platform linux/arm64 taoxg/dpanel:lite
-          docker run --rm --platform linux/arm64 taoxg/dpanel:lite sh -c "python3 --version && node --version"
+          set -e
+          # 安装crane（轻量镜像校验工具）
+          curl -sSL https://github.com/google/go-containerregistry/releases/latest/download/go-containerregistry_Linux_x86_64.tar.gz | tar xzf - crane
+          chmod +x crane
+
+          # 1. 校验镜像架构清单
+          echo "=== Checking image manifest ==="
+          crane manifest taoxg/dpanel:lite | jq '.manifests[].platform'
+          # 验证架构数量是否为3（amd64/arm64/arm/v7）
+          MANIFEST_COUNT=$(crane manifest taoxg/dpanel:lite | jq '.manifests | length')
+          if [ "$MANIFEST_COUNT" -ne 3 ]; then
+            echo "Error: Expected 3 architectures, got $MANIFEST_COUNT"
+            exit 1
+          fi
+
+          # 2. 验证每个架构的镜像可启动（后台启动+主动停止）
+          echo -e "\n=== Verifying each architecture ==="
+          ARCHES=("linux/amd64" "linux/arm64" "linux/arm/v7")
+          for ARCH in "${ARCHES[@]}"; do
+            CONTAINER_NAME="dpanel-test-$(echo $ARCH | tr '/' '-')"
+            echo -e "\n--- Testing $ARCH (container: $CONTAINER_NAME) ---"
+            
+            # 后台启动容器
+            docker run -d --name $CONTAINER_NAME --platform $ARCH taoxg/dpanel:lite
+            
+            # 等待服务初始化（amd64=3秒，ARM=8秒）
+            SLEEP_TIME=$([[ $ARCH == "linux/amd64" ]] && echo 3 || echo 8)
+            sleep $SLEEP_TIME
+            
+            # 检查容器是否运行（未崩溃）
+            if [ $(docker inspect -f '{{.State.Running}}' $CONTAINER_NAME 2>/dev/null || echo "false") != "true" ]; then
+              echo "Error: $ARCH container exited unexpectedly!"
+              docker logs $CONTAINER_NAME || true
+              docker rm -f $CONTAINER_NAME || true
+              exit 1
+            fi
+            
+            # 检查服务启动成功日志
+            if ! docker logs $CONTAINER_NAME | grep -q "Host: 0.0.0.0,Port: 8080"; then
+              echo "Error: $ARCH service did not start correctly!"
+              docker logs $CONTAINER_NAME || true
+              docker rm -f $CONTAINER_NAME || true
+              exit 1
+            fi
+            
+            # 停止并清理容器
+            docker stop $CONTAINER_NAME && docker rm $CONTAINER_NAME
+            echo "✅ $ARCH verify success"
+          done
+
+          # 清理临时文件
+          rm -f crane
+          echo -e "\n=== All architectures verified successfully ==="
+
+      # 8. 输出构建结果（方便查看）
+      - name: Print build summary
+        run: |
+          echo "✅ Build completed successfully!"
+          echo "Image tags:"
+          echo "  taoxg/dpanel:lite"
+          echo "  taoxg/dpanel:${{ steps.version.outputs.VERSION }}"
+          echo "Architectures: linux/amd64, linux/arm64, linux/arm/v7"
