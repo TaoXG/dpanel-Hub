@@ -48,6 +48,6 @@ jobs:
           tags: |
             taoxg/dpanel:lite
             taoxg/dpanel:${{ steps.version.outputs.VERSION }}
-          platforms: linux/amd64
+          platforms: linux/amd64,linux/arm64,linux/arm/v7
           build-args: |
             APP_VERSION=${{ steps.version.outputs.VERSION }}
