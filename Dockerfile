@@ -6,7 +6,13 @@ RUN apk add --no-cache tzdata && \
     echo "Asia/Shanghai" > /etc/timezone
 
 # 使用 apk 安装依赖（包含 coreutils 解决 nohup 问题）
-RUN apk add --no-cache python3 py3-pip nodejs npm bash curl coreutils 
+RUN apk add --no-cache \
+    python3 \
+    py3-pip \
+    nodejs npm \
+    bash \
+    curl \
+    coreutils  # 确保 nohup 可用
 
 RUN python3 -m venv /app/myenv && \
     /app/myenv/bin/pip install --upgrade pip && \
