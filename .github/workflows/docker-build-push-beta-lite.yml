@@ -27,7 +27,7 @@ jobs:
           context: .
           file: ./Dockerfile-beta
           push: true
-          标签: taoxg/dpanel:beta-lite
+          tags: taoxg/dpanel:beta-lite
           platforms: linux/amd64
           # 缓存优化
           cache-from: type=registry,ref=taoxg/dpanel:betabuildcache
