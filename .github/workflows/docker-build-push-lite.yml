@@ -59,7 +59,7 @@ jobs:
           platforms: linux/amd64
           build-args: |
             APP_VERSION=${{ steps.version.outputs.VERSION }}
-	  # 新增：禁用并行构建（ARM 模拟易出错）、强制无缓存
+	      # 新增：禁用并行构建（ARM 模拟易出错）、强制无缓存
           no-cache: true
           pull: true  # 强制拉取最新的基础镜像（如果锁定哈希则可删）
           provenance: false  # 关闭溯源（减少模拟负担）
