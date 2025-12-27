@@ -1,4 +1,4 @@
-name: slide
+name: yspapp
 on:
   workflow_dispatch:
 #  push:
@@ -35,9 +35,9 @@ jobs:
         uses: docker/build-push-action@v3
         with:
           context: .
-          file: ./Dockerfile-slide
+          file: ./Dockerfile-yspapp
           push: true
-          tags: taoxg/slide
+          标签: taoxg/yspapp
           platforms: linux/amd64,linux/arm64
           # 缓存优化
           cache-from: type=registry,ref=taoxg/slide:buildcache
