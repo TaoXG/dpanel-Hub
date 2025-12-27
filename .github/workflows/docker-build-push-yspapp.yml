@@ -1,55 +1,46 @@
 name: yspapp
 on:
   workflow_dispatch:
+#  push:
+#    branches:
+#      - main
 
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
-
-      # 新增：校验核心文件是否存在（避免文件缺失导致构建失败）
-      - name: Verify core files exist
-        run: |
-          if [ ! -f "requirements-yspapp.txt" ]; then echo "ERROR: requirements-yspapp.txt not found!" && exit 1; fi
-          if [ ! -f "yspapp.py" ]; then echo "ERROR: yspapp.py not found!" && exit 1; fi
-          if [ ! -f "Dockerfile-yspapp" ]; then echo "ERROR: Dockerfile-yspapp not found!" && exit 1; fi
+        uses: actions/checkout@v2
 
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
         with:
-          platforms: linux/amd64,linux/arm64
-          image: tonistiigi/binfmt:qemu-v7  # 稳定版 QEMU，避免兼容性问题
+          platforms: all  # 启用所有架构模拟
 
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
+      - name: Set up Docker Buildx 
+        uses: docker/setup-buildx-action@v3 
         with:
-          version: latest
+          version: latest  # 强制最新版 Buildx
           driver-opts: |
-            env.BUILDKIT_STEP_LOG_MAX_SIZE=104857600
-            env.BUILDKIT_PROGRESS=plain
-            env.PIP_INDEX_URL=https://pypi.tuna.tsinghua.edu.cn/simple  # 全局传递 pip 源
-
+            env.BUILDKIT_STEP_LOG_MAX_SIZE=104857600  # 增大日志缓冲区
+            env.BUILDKIT_PROGRESS=plain               # 输出详细构建日志
+      
       - name: Log in to Docker Hub
-        uses: docker/login-action@v3
+        uses: docker/login-action@v2
         with:
           username: ${{ secrets.DOCKER_HUB_USERNAME }}
           password: ${{ secrets.DOCKER_HUB_TOKEN }}
 
       - name: Build and push Docker image
-        uses: docker/build-push-action@v5
+        uses: docker/build-push-action@v3
         with:
           context: .
           file: ./Dockerfile-yspapp
           push: true
-          tags: taoxg/yspapp:latest
+          tags: taoxg/yspapp
           platforms: linux/amd64,linux/arm64
-          # 缓存优化：使用当前项目的缓存，避免引用其他项目
+          # 缓存优化
           cache-from: type=registry,ref=taoxg/yspapp:buildcache
           cache-to: type=registry,ref=taoxg/yspapp:buildcache,mode=max
-          pull: true
-          provenance: false
-          # 新增：输出详细的 pip 安装日志，方便排查依赖问题
-          build-args: |
-            PIP_VERBOSE=1
+          pull: true  
+          provenance: false  # 关闭溯源（减少模拟负担）
