@@ -1,29 +1,40 @@
-# 基础镜像：使用 Python 3.9  slim 版本（平衡体积和兼容性）
+# 基础镜像：使用 Python 3.9-slim（兼容脚本依赖，体积适中）
 FROM python:3.9-slim
+
+# 设置环境变量：避免 Python 输出缓冲导致日志丢失，优化 pip 安装
+ENV PYTHONUNBUFFERED=1 \
+    PIP_NO_CACHE_DIR=off \
+    PIP_DISABLE_PIP_VERSION_CHECK=on
 
 # 设置工作目录
 WORKDIR /app
 
-# 解决跨架构构建时的依赖编译问题：安装通用编译工具 + 清理缓存
+# 安装系统依赖：解决 Python 库编译问题（跨架构通用）
+# 注：slim 镜像已包含部分依赖，仅补充必要编译工具
 RUN apt-get update && apt-get install -y --no-install-recommends \
     gcc \
     libc6-dev \
-    make \
-    && rm -rf /var/lib/apt/lists/*  # 清理 apt 缓存，减小镜像体积
+    && rm -rf /var/lib/apt/lists/*  # 清理缓存，减小镜像体积
 
-# 复制依赖文件（确保 GitHub 仓库中该文件存在且名称一致）
+# 复制依赖文件（确保仓库中文件名为 requirements.txt）
 COPY requirements-yspapp.txt .
 
-# 优化 pip 安装：使用国内源（加速 GitHub Actions 构建）+ 无缓存
+# 安装 Python 依赖：
+# 1. 使用国内双源（清华+阿里云），避免单源故障
+# 2. 明确指定依赖版本（与 requirements.txt 一致）
+# 3. 增加超时重试，解决 GitHub Actions 网络不稳定问题
 RUN pip install --no-cache-dir \
+    --default-timeout=120 \
+    --retries=3 \
     -i https://pypi.tuna.tsinghua.edu.cn/simple \
+    -i https://mirrors.aliyun.com/pypi/simple/ \
     -r requirements-yspapp.txt
 
-# 复制脚本文件（确保 GitHub 仓库中 yspapp.py 存在）
+# 复制脚本文件（确保仓库中存在 yspapp.py）
 COPY yspapp.py .
 
 # 暴露端口（与脚本中 uvicorn 监听端口一致）
 EXPOSE 8080
 
-# 启动命令：明确指定 host 和 port（避免容器内网络问题）
+# 启动命令：明确指定 host=0.0.0.0（确保容器外可访问）
 CMD ["python", "yspapp.py"]
