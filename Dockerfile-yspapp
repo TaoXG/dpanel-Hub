@@ -12,7 +12,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 
 # 复制依赖文件并安装
 COPY requirements-yspapp.txt .
-RUN pip install --no-cache-dir -r requirements.txt
+RUN pip install --no-cache-dir -r requirements-yspapp.txt
 
 # 复制脚本文件
 COPY yspapp.py .
