@@ -1,0 +1,24 @@
+# 基础镜像：使用 Python 3.9 官方镜像（兼容性最佳）
+FROM python:3.9-slim
+
+# 设置工作目录
+WORKDIR /app
+
+# 安装系统依赖（避免 Python 库编译失败）
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    gcc \
+    libc6-dev \
+    && rm -rf /var/lib/apt/lists/*
+
+# 复制依赖文件并安装
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+
+# 复制脚本文件
+COPY yspapp.py .
+
+# 暴露脚本运行的端口（与脚本中 uvicorn 端口一致）
+EXPOSE 8080
+
+# 容器启动命令（启动 FastAPI 服务）
+CMD ["python", "yspapp.py"]
