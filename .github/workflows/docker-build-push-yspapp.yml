@@ -1,46 +1,49 @@
 name: yspapp
 on:
-  workflow_dispatch:
+  workflow_dispatch:  # 手动触发构建
 #  push:
 #    branches:
-#      - main
+#      - main  # 可选：推送到 main 分支自动构建
 
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4  # 升级到最新版，提升兼容性
 
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
         with:
-          platforms: all  # 启用所有架构模拟
+          platforms: linux/amd64,linux/arm64  # 只启用需要的架构，减少资源占用
+          image: tonistiigi/binfmt:latest  # 指定最新版 QEMU 模拟工具
 
-      - name: Set up Docker Buildx 
-        uses: docker/setup-buildx-action@v3 
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
         with:
-          version: latest  # 强制最新版 Buildx
+          version: latest
           driver-opts: |
             env.BUILDKIT_STEP_LOG_MAX_SIZE=104857600  # 增大日志缓冲区
-            env.BUILDKIT_PROGRESS=plain               # 输出详细构建日志
-      
+            env.BUILDKIT_PROGRESS=plain  # 输出详细日志，方便排查错误
+
       - name: Log in to Docker Hub
-        uses: docker/login-action@v2
+        uses: docker/login-action@v3  # 升级到最新版
         with:
           username: ${{ secrets.DOCKER_HUB_USERNAME }}
           password: ${{ secrets.DOCKER_HUB_TOKEN }}
 
       - name: Build and push Docker image
-        uses: docker/build-push-action@v3
+        uses: docker/build-push-action@v5  # 升级到最新版，优化跨架构构建
         with:
-          context: .
-          file: ./Dockerfile-yspapp
-          push: true
-          tags: taoxg/yspapp
-          platforms: linux/amd64,linux/arm64
-          # 缓存优化
-          cache-from: type=registry,ref=taoxg/slide:buildcache
-          cache-to: type=registry,ref=taoxg/slide:buildcache,mode=max
-          pull: true  
-          provenance: false  # 关闭溯源（减少模拟负担）
+          context: .  # 构建上下文为当前目录
+          file: ./Dockerfile-yspapp  # 指定 Dockerfile 路径（确保和仓库中一致）
+          push: true  # 构建完成后推送到 Docker Hub
+          tags: taoxg/yspapp:latest  # 标签（建议添加版本号，如 :v1.0）
+          platforms: linux/amd64,linux/arm64  # 目标架构
+          # 缓存优化：使用当前项目的缓存，而非其他项目
+          cache-from: type=registry,ref=taoxg/yspapp:buildcache
+          cache-to: type=registry,ref=taoxg/yspapp:buildcache,mode=max
+          pull: true  # 拉取最新基础镜像
+          provenance: false  # 关闭溯源，减少构建负担
+          build-args: |
+            PIP_INDEX_URL=https://pypi.tuna.tsinghua.edu.cn/simple  # 传递 pip 国内源参数
