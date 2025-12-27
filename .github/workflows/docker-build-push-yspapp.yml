@@ -38,7 +38,7 @@ jobs:
           file: ./Dockerfile-yspapp
           push: true
           tags: taoxg/yspapp
-          platforms: linux/amd64,linux/arm64
+          platforms: linux/amd64
           # 缓存优化
           cache-from: type=registry,ref=taoxg/yspapp:buildcache
           cache-to: type=registry,ref=taoxg/yspapp:buildcache,mode=max
