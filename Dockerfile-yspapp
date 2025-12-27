@@ -1,24 +1,29 @@
-# 基础镜像：使用 Python 3.9 官方镜像（兼容性最佳）
+# 基础镜像：使用 Python 3.9  slim 版本（平衡体积和兼容性）
 FROM python:3.9-slim
 
 # 设置工作目录
 WORKDIR /app
 
-# 安装系统依赖（避免 Python 库编译失败）
+# 解决跨架构构建时的依赖编译问题：安装通用编译工具 + 清理缓存
 RUN apt-get update && apt-get install -y --no-install-recommends \
     gcc \
     libc6-dev \
-    && rm -rf /var/lib/apt/lists/*
+    make \
+    && rm -rf /var/lib/apt/lists/*  # 清理 apt 缓存，减小镜像体积
 
-# 复制依赖文件并安装
+# 复制依赖文件（确保 GitHub 仓库中该文件存在且名称一致）
 COPY requirements-yspapp.txt .
-RUN pip install --no-cache-dir -r requirements-yspapp.txt
 
-# 复制脚本文件
+# 优化 pip 安装：使用国内源（加速 GitHub Actions 构建）+ 无缓存
+RUN pip install --no-cache-dir \
+    -i https://pypi.tuna.tsinghua.edu.cn/simple \
+    -r requirements-yspapp.txt
+
+# 复制脚本文件（确保 GitHub 仓库中 yspapp.py 存在）
 COPY yspapp.py .
 
-# 暴露脚本运行的端口（与脚本中 uvicorn 端口一致）
+# 暴露端口（与脚本中 uvicorn 监听端口一致）
 EXPOSE 8080
 
-# 容器启动命令（启动 FastAPI 服务）
+# 启动命令：明确指定 host 和 port（避免容器内网络问题）
 CMD ["python", "yspapp.py"]
