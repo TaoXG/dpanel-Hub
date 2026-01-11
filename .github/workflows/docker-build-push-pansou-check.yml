@@ -40,7 +40,7 @@ jobs:
           tags: taoxg/pansou-check
           platforms: linux/amd64,linux/arm64
           # 缓存优化
-          cache-from: type=registry,ref=taoxg/pansou-check:buildcache
-          cache-to: type=registry,ref=taoxg/pansou-check:buildcache,mode=max
-          pull: true  
-          provenance: false  # 关闭溯源（减少模拟负担）
+         # cache-from: type=registry,ref=taoxg/pansou-check:buildcache
+         # cache-to: type=registry,ref=taoxg/pansou-check:buildcache,mode=max
+         # pull: true  
+         # provenance: false  # 关闭溯源（减少模拟负担）
