@@ -38,7 +38,7 @@ jobs:
           file: ./slide/Dockerfile
           push: true
           tags: taoxg/pansou-check
-          platforms: linux/amd64,linux/arm64,linux/arm/v7
+          platforms: linux/amd64,linux/arm64
           # 缓存优化
           cache-from: type=registry,ref=taoxg/slide:buildcache
           cache-to: type=registry,ref=taoxg/slide:buildcache,mode=max
