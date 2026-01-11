@@ -35,7 +35,7 @@ jobs:
         uses: docker/build-push-action@v3
         with:
           context: ./pansou-check
-          file: ./Dockerfile
+          file: ./pansou-check/Dockerfile
           push: true
           tags: taoxg/pansou-check
           platforms: linux/amd64,linux/arm64,linux/arm/v7
